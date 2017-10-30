@@ -6,8 +6,6 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var server = require('http').createServer(app);
-var io = require('socket.io')(server);
 var app = express();
 
 app.use(logger('dev'));
@@ -32,7 +30,20 @@ app.get('/', function (req, res) {
 app.get('*', function (req, res) {
     res.sendFile(__dirname + '/public/error.html');
 });
-app.set('port', process.env.PORT || 3000);
-app.listen(app.get('port'), function () {
-    debug('Express server listening on port ' + app.get('port'));
+app.set('port', process.env.PORT || 8080);
+
+var server = require('http').createServer(app);
+var io = require('socket.io')(server);
+
+server.listen(app.get('port'));
+
+io.sockets.on('connection', function (client) {
+    console.log("New socket: ", client.id);
+    client.on('disconnect', function () {
+        console.log("Player left: ", client.id);
+        if (players[client.id]) delete players[client.id];
+    });
+    client.on('join', function (name, colour) {
+        console.log("Player joined: ", client.id);
+    });
 });

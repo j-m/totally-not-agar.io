@@ -1,7 +1,41 @@
 ﻿body {
     margin: 0;
     font-family: Open Sans, sans-serif;
+    background: #eee;
 }
-a {
-    color: #00B7FF;
+#container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    padding: 2rem;
+    border-radius: 5px;
+    background: white;
+    box-shadow: 0 5px 20px -5px black;
+}
+
+#players {
+    text-align: right;
+    font-weight: bold;
+    margin-bottom: .5rem;
+}
+
+canvas {
+    display: block;
+    margin: auto;
+    border: 1px solid grey;
+}
+
+form {
+    text-align: center;
+}
+
+form input[type="submit"] {
+    padding: .5rem 2rem;
+}
+
+form input {
+    margin-right: 1rem;
 }

@@ -1,11 +1,25 @@
 ﻿<!DOCTYPE html>
 <html>
-    <head>
-        <title>Totally Not Agar.io</title>
-        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        <link rel="stylesheet" type="text/css" href="/stylesheets/index.css">
-    </head>
-    <body>
-        <div>Content</div>
-    </body>
+<head>
+    <title>Totally Not Agar.io</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" type="text/css" href="/stylesheets/index.css">
+    <script src="./socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="./javascript/client.js"></script>
+</head>
+<body>
+    <div id="container">
+        <div id="game">
+            <p id="players">0 Players Online</p>
+            <canvas>Your browser does not support the HTML5 canvas tag.</canvas>
+            <br/>
+            <form method="get">
+                <label for="name">Name:</label> <input type="text" name="name" id="name" />
+                <label for="colour">Colour:</label><input type="color" name="colour" id="colour" />
+                <input type="submit" id="play" value="Play!" />
+            </form>
+        </div>
+    </div>
+</body>
 </html>
