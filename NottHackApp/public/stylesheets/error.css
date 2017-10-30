@@ -1,0 +1,9 @@
+﻿body {
+    margin: 5rem;
+    font-family: Open Sans, sans-serif;
+    font-size: 300%;
+    color: #222;
+}
+body * {
+    margin:0;
+}
