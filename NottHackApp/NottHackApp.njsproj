@@ -30,7 +30,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="app.js" />
-    <Compile Include="public\javascript\client.js" />
+    <Compile Include="public\javascript\client.js">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="public\javascript\index.js" />
     <Content Include="package.json" />
     <Content Include="public\favicon.ico" />
     <Content Include="public\stylesheets\error.css">
