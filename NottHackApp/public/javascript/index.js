@@ -39,6 +39,7 @@ function onResize() {
 
     $('canvas')[0].width = width;
     $('canvas')[0].height = height;
+
 }
 function randomiseColour() {
     document.getElementById('colour').value = generateColour();

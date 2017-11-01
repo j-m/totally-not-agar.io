@@ -6,14 +6,12 @@ var debug = require('debug'),
     logger = require('morgan'),
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
-    app = express(),
+    uuid = require('uuid4'),
     express = require('express'),
     app = express(),
     http = require('http').Server(app),
     WebSocketServer = require('ws').Server,
-    wss = new WebSocketServer({
-        port: 8080
-    });
+    socket = new WebSocketServer({ port: 8080 });
 
 app.use(logger('dev'));
 app.use(bodyParser.json());
@@ -33,18 +31,51 @@ if (app.get('env') === 'development') {
 app.get('/', function (req, res) {res.sendFile(__dirname + '/index.html');});
 app.get('*', function (req, res) {res.sendFile(__dirname + '/public/error.html');});
 app.set('port', process.env.PORT || 8080);
+http.listen(app.get('port'));
 
-wss.broadcast = function broadcast(data) {
-    wss.clients.forEach(function each(client) {
+socket.broadcast = function broadcast(data) {
+    socket.clients.forEach(function each(client) {
         client.send(data);
     });
 };
 
-wss.on('connection', function (ws) {
-    ws.on('message', function (msg) {
-        var data = JSON.parse(msg);
-        if (data.message) wss.broadcast('<strong>' + data.name + '</strong>: ' + data.message);
+socket.on('connection', function (client) {
+    client.id = uuid();
+    console.log('Client '+client.id+' joined');
+    client.on('message', function (message){
+        var object;
+        try {
+            object = JSON.parse(message);
+        } catch (e) {
+            client.send(JSON.stringify({ "function": "error", "error": "Invalid JSON recieved from client. Raw data: " + message }));
+            return;
+        }
+        switch (object["function"]) {
+            case "play":
+                var err = addPlayer(client.id, object["name"], object["fill"], object["border"]);
+                if (err == true) client.send(JSON.stringify({ "function": "error", "error": "You seem to be already playing" }));
+                break;
+            default: client.send(JSON.stringify({ "function": "error", "error": "Unknown function recieved from client" })); break;
+        }
     });
+
 });
 
-http.listen(process.env.PORT, function () {});
+var players = [];
+function addPlayer(id, name, fill, border) {
+    var found = false;
+    players.forEach(function (player) {
+        if (player.id == id)
+            found = true;
+    })
+    if (found == false)
+        players.push( { id: id, name: name, fill: fill, border: border, radius: 50, x: 150, y:150 });
+    else return true;
+}
+function update() {
+    socket.broadcast(JSON.stringify({ "function": "update", players }));
+};
+function init() {
+    if (typeof game_loop != "undefined") clearInterval(game_loop);
+    var game_loop = setInterval(update, 30);
+}init();

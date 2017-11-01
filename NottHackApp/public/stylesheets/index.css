@@ -20,8 +20,6 @@
     margin-bottom: 0;
 }
 canvas {
-    display: block;
-    margin: auto;
     border: 1px solid grey;
     background: #fafafa;
 }
