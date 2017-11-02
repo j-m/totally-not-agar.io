@@ -3,6 +3,21 @@
     font-family: Open Sans, sans-serif;
     background: #eee;
 }
+#error{
+    padding:.5rem;
+    background-color: red;
+    border-bottom: .2rem solid darkred;
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    margin:0;
+    z-index:2;
+    text-align:center;
+    color:white;
+    font-weight: 600;
+    visibility: hidden;
+}
 .popup {
     position: absolute;
     left: 50%;
