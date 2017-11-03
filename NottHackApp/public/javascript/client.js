@@ -12,19 +12,19 @@
 }();
 $(document).ready(function () {
     var canvas = $("canvas")[0], context = canvas.getContext('2d'),
-        camera = { x: 0, y: 0, zoom: 25 },
-        players = [], spikes = [], foods = [];
+        camera = { x: 0, y: 0 },
+        players = [], spikes = [], foods = [],
+        me = { mass: 100 };
     function drawFood(food) {
         context.beginPath();
-        context.arc(food.x - camera.x, food.y - camera.y, camera.zoom / 2 + (1 - Math.abs(food.offset) / 50)*2, 0, 2 * Math.PI, false);
+        context.arc(food.x - camera.x, food.y - camera.y, food.mass + (1 - Math.abs(food.offset) / 50)*2, 0, 2 * Math.PI, false);
         context.closePath();
-        context.fillStyle = food.colour;
+        context.fillStyle = food.fill;
         context.fill();
-        context.lineWidth = camera.zoom / 5;
-        context.strokeStyle = calculateBorder(food.colour);
+        context.lineWidth = food.mass/2;
+        context.strokeStyle = food.border;
         context.stroke();
     }
-
     function sineCircleXYatAngle(cx, cy, radius, amplitude, angle, sineCount) {
         var x = cx + (radius + amplitude * Math.sin(sineCount * angle)) * Math.cos(angle);
         var y = cy + (radius + amplitude * Math.sin(sineCount * angle)) * Math.sin(angle);
@@ -32,22 +32,21 @@ $(document).ready(function () {
     }
     function drawSpike(spike) {
         context.fillStyle = '#00ff00';
-        context.lineWidth = camera.zoom/4;
-        context.strokeStyle = calculateBorder('#00ff00');
+        context.lineWidth = spike.mass / 15;
+        context.strokeStyle = '#00df00';
         context.beginPath();
         for (var i = 0; i < 360; i++) {
             var angle = i * Math.PI / 180;
-            var pt = sineCircleXYatAngle(spike.x - camera.x, spike.y - camera.y, camera.zoom * 4, camera.zoom / 4 + (1 - Math.abs(spike.offset) / 10), angle + (1 - Math.abs(spike.offset) / 1000), 50);
+            var pt = sineCircleXYatAngle(spike.x - camera.x, spike.y - camera.y, spike.mass,  spike.mass/15 + (1 - Math.abs(spike.offset) / 10), angle + (1 - Math.abs(spike.offset) / 1000), 50);
             context.lineTo(pt.x, pt.y);
         }
         context.closePath();
         context.fill();
         context.stroke();
     }
-
     function drawPlayer(player) {
         context.beginPath();
-        context.arc(player.x - camera.x, player.y - camera.y, player.mass/2, 0, 2 * Math.PI, false);
+        context.arc(player.x - camera.x, player.y - camera.y, player.mass, 0, 2 * Math.PI, false);
         context.fillStyle = player.fill;
         context.fill();
         context.lineWidth = 10;
@@ -56,7 +55,7 @@ $(document).ready(function () {
         
         context.textAlign = "center";
         context.textBaseline = "middle";
-        context.font = 30 + "px Sans-serif";
+        context.font = player.mass/5 + "px Sans-serif";
 
         context.lineWidth = 5;
         context.strokeStyle = '#111';
@@ -65,19 +64,20 @@ $(document).ready(function () {
         context.fillStyle = 'white';
         context.fillText(player.name, player.x - camera.x, player.y - camera.y);
 
-        context.font = 18 + "px Sans-serif";
-        context.strokeText(player.mass, player.x - camera.x, player.y - camera.y - 30);
-        context.fillText(player.mass, player.x - camera.x, player.y - camera.y - 30);
+        context.font = player.mass/10 + "px Sans-serif";
+        context.strokeText(player.mass, player.x - camera.x, player.y - camera.y - player.mass / 5);
+        context.fillText(player.mass, player.x - camera.x, player.y - camera.y - player.mass / 5);
     }
     function grid() {
+        context.beginPath();
         context.lineWidth = 1;
         context.strokeStyle = '#EEE';
-        for (x = 0; x <= canvas.width+1; x += camera.zoom) {
-            context.moveTo(x - camera.x % camera.zoom, 0);
-            context.lineTo(x - camera.x % camera.zoom, canvas.height);
-            for (y = 0; y <= canvas.height+1; y += camera.zoom) {
-                context.moveTo(0, y - camera.y % camera.zoom);
-                context.lineTo(canvas.width, y - camera.y % camera.zoom);
+        for (x = 0; x <= parseInt(canvas.style.width, 10) + 1; x += parseInt(canvas.style.width, 10) / 20) {
+            context.moveTo(Math.floor(x - camera.x % 20), 0);
+            context.lineTo(Math.floor(x - camera.x % 20), parseInt(canvas.style.height, 10) );
+            for (y = 0; y <= parseInt(canvas.style.height, 10) + 1; y += parseInt(canvas.style.width, 10) / 20) {
+                context.moveTo(0, Math.floor(y - camera.y % 20));
+                context.lineTo(parseInt(canvas.style.width, 10) , Math.floor(y - camera.y % 20));
             }
         }
         context.stroke();
@@ -86,11 +86,21 @@ $(document).ready(function () {
         players = data["players"];
         spikes = data["spikes"];
         foods = data["foods"];
+        me.mass = data["playermass"]; 
 
+        $('#players').text(players.length + (players.length !== 1 ? ' Players ' : ' Player ') + 'In-game');
+
+        var zoom = (me.mass * 2) / (parseInt(canvas.style.width, 10) / 5);
+        canvas.width = parseInt(canvas.style.width, 10) * zoom;
+        canvas.height = parseInt(canvas.style.height, 10) * zoom;
         camera.x = data["playerx"] - canvas.width / 2;
         camera.y = data["playery"] - canvas.height / 2;
 
-        $('#players').text(players.length + (players.length !== 1 ? ' Players ' : ' Player ') + 'In-game');
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        grid();
+        foods.forEach(function (food) { drawFood(food); });
+        players.forEach(function (player) { drawPlayer(player); });
+        spikes.forEach(function (spike) { drawSpike(spike); });
     }
     function error(description) {
         console.log("ERROR: " + description);
@@ -115,12 +125,8 @@ $(document).ready(function () {
     };
     function draw() {
         if (ws.readyState !== ws.CLOSED) {
+            context.drawImage(canvas, 0, 0);
             requestAnimFrame(draw);
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            grid();
-            foods.forEach(function (food) { drawFood(food); });
-            players.forEach(function (player) { drawPlayer(player); });
-            spikes.forEach(function (spike) { drawSpike(spike); });
         } else { error(" Connection closed"); }
     } draw();
     $('form').submit(function (e) {
@@ -128,8 +134,7 @@ $(document).ready(function () {
         ws.send(JSON.stringify({
             "function": "play",
             "name": $('#name').val(),
-            "fill": $('#colour').val(),
-            "border": calculateBorder($('#colour').val())
+            "fill": $('#colour').val()
         }));
         $('form').hide();
         $("canvas").attr("tabindex", "0");

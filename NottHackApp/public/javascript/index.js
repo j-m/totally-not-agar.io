@@ -3,25 +3,14 @@ lastNames = ["ninja", "chair", "pancake", "statue", "unicorn", "rainbows", "lase
 function generateName() {
     return firstNames[Math.floor(Math.random() * this.firstNames.length)] + ' ' + lastNames[Math.floor(Math.random() * this.lastNames.length)];
 }
-function calculateBorder(colour) {
-    var c = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(colour);
-    var r = parseInt(c[1], 16) - 32 > 0 ? parseInt(c[1], 16) - 32 : 0;
-    var g = parseInt(c[2], 16) - 32 > 0 ? parseInt(c[2], 16) - 32 : 0;
-    var b = parseInt(c[3], 16) - 32 > 0 ? parseInt(c[3], 16) - 32 : 0;
-    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-}
-function calculateFill(colour) {
+function generateColour() {
+    var colour = '#' + ('00000' + (Math.random() * (1 << 24) | 0).toString(16)).slice(-6);
     var c = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(colour);
     var r = parseInt(c[1], 16) - 32 > 0 ? parseInt(c[1], 16) - 32 : 0;
     var g = parseInt(c[2], 16) - 32 > 0 ? parseInt(c[2], 16) - 32 : 0;
     var b = parseInt(c[3], 16) - 32 > 0 ? parseInt(c[3], 16) - 32 : 0;
     return '#' + ('00000' + (Math.random() * (1 << 24) | 0).toString(16)).slice(-6);
 }
-function generateColour() {
-    var colour = '#' + ('00000' + (Math.random() * (1 << 24) | 0).toString(16)).slice(-6);
-    return calculateFill(colour);
-}
-
 function get(name) {
     name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search);
     if(name)return decodeURIComponent(name[1].replace(/\+/g, ' '));
@@ -36,10 +25,9 @@ function onResize() {
         width = maxWidth;
         height = maxWidth / PHI;
     }
-
-    $('canvas')[0].width = width;
-    $('canvas')[0].height = height;
-
+    
+    $('canvas')[0].style.width = width + "px";
+    $('canvas')[0].style.height = height + "px";
 }
 function randomiseColour() {
     document.getElementById('colour').value = generateColour();
