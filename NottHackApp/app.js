@@ -2,18 +2,18 @@
 var debug = require('debug'),
     express = require('express'),
     path = require('path'),
-    favicon = require('serve-favicon'),
+    favicon = require('serve-favicon'), 
     logger = require('morgan'),
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
     uuid = require('uuid4'),
-    express = require('express'),
+    express = require('express'), 
     app = express(),
     http = require('http').Server(app),
     WebSocketServer = require('ws').Server,
     socket = new WebSocketServer({ port: 8080 });
-
-app.use(logger('dev'));
+  
+app.use(logger('dev')); 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false })); 
 app.use(cookieParser());
