@@ -36,6 +36,7 @@
     <Compile Include="public\javascript\index.js" />
     <Content Include="package.json" />
     <Content Include="public\favicon.ico" />
+    <Content Include="public\images\tna.png" />
     <Content Include="public\stylesheets\error.css">
       <SubType>Code</SubType>
     </Content>

@@ -68,14 +68,15 @@ $(document).ready(function () {
         context.strokeText(player.mass, player.x - camera.x, player.y - camera.y - player.mass / 5);
         context.fillText(player.mass, player.x - camera.x, player.y - camera.y - player.mass / 5);
     }
+    var zoom = 1;
     function grid() {
         context.beginPath();
         context.lineWidth = 1;
         context.strokeStyle = '#EEE';
-        for (x = 0; x <= parseInt(canvas.style.width, 10) + 1; x += parseInt(canvas.style.width, 10) / 20) {
+        for (x = 0; x <= parseInt(canvas.style.width * zoom, 10) + 1; x += parseInt(canvas.style.width * zoom, 10) / 20) {
             context.moveTo(Math.floor(x - camera.x % 20), 0);
             context.lineTo(Math.floor(x - camera.x % 20), parseInt(canvas.style.height, 10) );
-            for (y = 0; y <= parseInt(canvas.style.height, 10) + 1; y += parseInt(canvas.style.width, 10) / 20) {
+            for (y = 0; y <= parseInt(canvas.style.height * zoom, 10) + 1; y += parseInt(canvas.style.width * zoom, 10) / 20) {
                 context.moveTo(0, Math.floor(y - camera.y % 20));
                 context.lineTo(parseInt(canvas.style.width, 10) , Math.floor(y - camera.y % 20));
             }
@@ -90,7 +91,7 @@ $(document).ready(function () {
 
         $('#players').text(players.length + (players.length !== 1 ? ' Players ' : ' Player ') + 'In-game');
 
-        var zoom = (me.mass * 2) / (parseInt(canvas.style.width, 10) / 5);
+        zoom = me.mass * 2 / (parseInt(canvas.style.width, 10) / 5);
         canvas.width = parseInt(canvas.style.width, 10) * zoom;
         canvas.height = parseInt(canvas.style.height, 10) * zoom;
         camera.x = data["playerx"] - canvas.width / 2;
