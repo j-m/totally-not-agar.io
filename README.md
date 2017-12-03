@@ -14,5 +14,7 @@ To fix this I'm considering:
 - Delaying non-essential data transmission
 - Using different web socket packages. (I have already changed from `socket.io` to `ws`)
 
+----
+
 Please bear in my I've kept this project as NO LICENSE as I do not own the rights to this idea. 
-If you wish to use any code from here, please check ![agar.io](http://agar.io) for their license first before asking me in Issues. 
+If you wish to use any code from here, please check ![agar.io](http://agar.io) for their license first before asking me. 
