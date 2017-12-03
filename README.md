@@ -1,6 +1,6 @@
 ![Logo](https://github.com/jauntum/TotallyNotAgario/blob/master/NottHackApp/public/images/TNA.png "Logo")
 
-## Totally NOT Agar.io - Nottingham University Hackathon 2017 [![Travis](https://travis-ci.org/jauntum/TotallyNotAgario.svg)](https://travis-ci.org/jauntum/TotallyNotAgario)
+## [![Travis](https://travis-ci.org/jauntum/TotallyNotAgario.svg)](https://travis-ci.org/jauntum/TotallyNotAgario) Totally NOT Agar.io - Nottingham University Hackathon 2017
 
 At HackNotts 2017 our project was a clone of Agar.io.
 This repo is an independent continuation of the project - which I hope to refine and optimise.
