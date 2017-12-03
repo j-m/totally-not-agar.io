@@ -12,7 +12,7 @@ var debug = require('debug'),
     http = require('http').Server(app),
     WebSocketServer = require('ws').Server,
     socket = new WebSocketServer({ port: 8080 });
-
+  
 app.use(logger('dev')); 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false })); 
