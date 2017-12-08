@@ -15,6 +15,21 @@ To fix this I'm considering:
 - Using different web socket packages. (I have already changed from `socket.io` to `ws`)
 
 ----
+To-do list, in priority order:
+- [ ] Background grid
+- [ ] Max zoom
+- [ ] Fix lag from food replacement: 1 attempt to replace after eaten, or N chance for 1 to be added per frame.
+- [ ] Spike collision
+- [ ] Spliting
+- [ ] Eject mass
+- [ ] Smooth player movement: client-side transitions
+- [ ] Leaderboard
+- [ ] Chat
+- [ ] Stats after death
+- [ ] Low graphic mode
+- [ ] Mobile support
+
+----
 
 Please bear in my I've kept this project as NO LICENSE as I do not own the rights to this idea. 
 If you wish to use any code from here, please check ![agar.io](http://agar.io) for their license first before asking me. 
