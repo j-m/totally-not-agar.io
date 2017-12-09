@@ -16,6 +16,8 @@ $(document).ready(function () {
         players = [], spikes = [], foods = [],
         me = { mass: 100 };
     function drawFood(food) {
+		food.offset++;
+		if (food.offset > 50) food.offset = -50;
         context.beginPath();
         context.arc(food.x - camera.x, food.y - camera.y, food.mass + (1 - Math.abs(food.offset) / 50)*2, 0, 2 * Math.PI, false);
         context.closePath();
@@ -31,6 +33,8 @@ $(document).ready(function () {
         return { x: x, y: y };
     }
     function drawSpike(spike) {
+		spike.offset++;
+		if (spike.offset > 50) spike.offset = -50;
         context.fillStyle = '#00ff00';
         context.lineWidth = spike.mass / 15;
         context.strokeStyle = '#00df00';
@@ -73,20 +77,29 @@ $(document).ready(function () {
         context.beginPath();
         context.lineWidth = 1;
         context.strokeStyle = '#EEE';
-        for (x = 0; x <= parseInt(canvas.style.width * zoom, 10) + 1; x += parseInt(canvas.style.width * zoom, 10) / 20) {
-            context.moveTo(Math.floor(x - camera.x % 20), 0);
-            context.lineTo(Math.floor(x - camera.x % 20), parseInt(canvas.style.height, 10) );
-            for (y = 0; y <= parseInt(canvas.style.height * zoom, 10) + 1; y += parseInt(canvas.style.width * zoom, 10) / 20) {
-                context.moveTo(0, Math.floor(y - camera.y % 20));
-                context.lineTo(parseInt(canvas.style.width, 10) , Math.floor(y - camera.y % 20));
-            }
+        var w = 5000, h = 2000;
+        for (x = -w; x <= 2*w; x += 50) {
+            context.moveTo(x - camera.x, 0);
+            context.lineTo(x - camera.x, h);
+        }
+        for (y = -h; y <= 2*h; y += 50) {
+            context.moveTo(0, y - camera.y);
+            context.lineTo(w, y - camera.y);
         }
         context.stroke();
     }
-    function update(data) {
-        players = data["players"];
+    function objects(data) {
         spikes = data["spikes"];
         foods = data["foods"];
+    }
+    function updateSpikes(data) {
+        spikes = data["spikes"];
+    }
+    function updateFood(data) {
+        foods = data["foods"];
+    }
+    function update(data) {
+        players = data["players"];
         me.mass = data["playermass"]; 
 
         $('#players').text(players.length + (players.length !== 1 ? ' Players ' : ' Player ') + 'In-game');
@@ -108,20 +121,23 @@ $(document).ready(function () {
         $('#error').text("ERROR: " + description);
         $('#error').css('visibility', 'visible');
     }
-    ws = new WebSocket("ws://localhost:8080/");
+    ws = new WebSocket("ws://139.59.182.80:8080/");
     ws.onerror = function (evt) { error(evt.data); };
     ws.onmessage = function (message) {
-        var object;
+        var data;
         try {
-            object = JSON.parse(message.data);
+            data = JSON.parse(message.data);
         } catch (e) {
             error("Invalid JSON recieved from server. Raw data: " + message.data);
             return;
         }
-        switch (object["function"]) {
-            case "update": update(object); break;
-            case "error": error(object["error"]); break;
-            default: error("Unknown function recieved from server: " + object["function"]); break;
+        switch (data["function"]) {
+            case "update": update(data); break;
+            case "objects": objects(data); break;
+            case "updateSpikes": updateSpikes(data); break;
+            case "updateFood": updateFood(data); break;
+            case "error": error(data["error"]); break;
+            default: error("Unknown function recieved from server: " + data["function"]); break;
         }
     };
     function draw() {

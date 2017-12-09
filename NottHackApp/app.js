@@ -1,44 +1,25 @@
 ﻿'use strict';
 var debug = require('debug'),
-    express = require('express'),
-    path = require('path'),
-    favicon = require('serve-favicon'), 
     logger = require('morgan'),
-    cookieParser = require('cookie-parser'),
-    bodyParser = require('body-parser'),
     uuid = require('uuid4'),
-    express = require('express'), 
-    app = express(),
-    http = require('http').Server(app),
     WebSocketServer = require('ws').Server,
-    socket = new WebSocketServer({ port: 8080 });
-  
-app.use(logger('dev')); 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false })); 
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(favicon(__dirname + '/public/favicon.ico'));
-if (app.get('env') === 'development') {
-    app.use(function (err, req, res, next) {
-        res.status(err.status || 500);
-        res.render('error', {
-            message: err.message,
-            error: err
-        });
-    });
-}
-app.get('/', function (req, res) {res.sendFile(__dirname + '/index.html');});
-app.get('*', function (req, res) {res.sendFile(__dirname + '/public/error.html');});
-app.set('port', process.env.PORT || 8080);
-http.listen(app.get('port'));
-
+    socket = new WebSocketServer({ port: 8080 }),
+    world = {
+        minx: 0,
+        miny: 0,
+        maxx: 5000,
+        maxy: 2000,
+        foods: 150,
+        spikes: 20
+    },
+    colours = ["#00bfff", "#00ff00", "#ffff66", "#ff9900", "#9900cc", "#ff0000"],
+    players = [], foods = [], spikes = [], borders = [];
 function send(client, data) {
     try { client.send(data); } catch (e) { console.log("Failed to send data to a client"); }
 }
 socket.on('connection', function (client) {
     client.id = uuid();
-    console.log('Client '+client.id+' joined');
+    console.log('Client '+client.id+' connected');
     client.on('message', function (message){
         var object;
         try {
@@ -49,64 +30,49 @@ socket.on('connection', function (client) {
         }
         switch (object["function"]) {
             case "play":
-                if (addPlayer(client.id, object["name"], object["fill"]) === true) send(client, JSON.stringify({ "function": "error", "error": "You seem to be already playing" }));
+                if (!addPlayer(client.id, object["name"], object["fill"])) send(client, JSON.stringify({ "function": "error", "error": "You seem to be playing already" }));
+                else send(client, JSON.stringify({ "function": "objects", "foods": foods, "spikes": spikes }));
                 break;
             case "move":
-                if (movePlayer(client.id, object["keys"]) === true) send(client, JSON.stringify({ "function": "error", "error": "You don't appear to be playing" }));
+                if (!players[client.id]) send(client, JSON.stringify({ "function": "error", "error": "You don't appear to be playing" }));
+                else players[client.id].keys = object["keys"];
                 break;
             default: send(client, JSON.stringify({ "function": "error", "error": "Unknown function recieved from client" })); break;
         }
     });
 });
-var world = {
-    minx: 0,
-    miny: 0,
-    maxx: 5000,
-    maxy: 2000,
-    foods: 150,
-    spikes: 20
-};
-var players = [], foods = [], spikes = [];
 function checkAlive() {
     var newplayers = [];
     socket.clients.forEach(function (client) { newplayers[client.id] = players[client.id]; });
-    for (var id in players) {
+    for (var id in players)
         if (!newplayers[id])
             console.log('Client ' + id + ' disconnected');
-    }
     players = newplayers;
 }
-setInterval(checkAlive, 10000);
 function update() {
     var newplayers = [];
-    for (var id in players) {
+    for (var id in players)
         if (players[id]) {
             var speed = 10 - 1 / players[id].mass;
-            if (players[id].y - 4 > world.miny) if (players[id].w === true) players[id].y -= speed;
-            if (players[id].x - 4 > world.minx) if (players[id].a === true) players[id].x -= speed;
-            if (players[id].y + 4 < world.maxy) if (players[id].s === true) players[id].y += speed;
-            if (players[id].x + 4 < world.maxx) if (players[id].d === true) players[id].x += speed;
+            if (players[id].y - speed > world.miny) if (players[id].keys.w === true) players[id].y -= speed;
+            if (players[id].x - speed > world.minx) if (players[id].keys.a === true) players[id].x -= speed;
+            if (players[id].y + speed < world.maxy) if (players[id].keys.s === true) players[id].y += speed;
+            if (players[id].x + speed < world.maxx) if (players[id].keys.d === true) players[id].x += speed;
             newplayers.push(players[id]);
-        }
-    }
-    foods.forEach(function (food) {
-        food.offset++;
-        if (food.offset > 50) food.offset = -50;
-        for (var id in players) if (players[id])
-            if (Math.hypot(players[id].x - food.x, players[id].y - food.y) <= players[id].mass + food.mass) {
-                players[id].mass += 1;
-                food.spawn();
+
+            for (var index = foods.length - 1; index >= 0; index--) {
+                if (Math.hypot(players[id].x - foods[index].x, players[id].y - foods[index].y) <= players[id].mass + foods[index].mass) {
+                    foods.splice(index, 1);
+                    players[id].mass += 1;
+                    console.log("Food removed");
+                }
             }
-    });
-    spikes.forEach(function (spike) {
-        spike.offset++;
-        if (spike.offset > 50) spike.offset = -50;
-    });
+        }
+    if (foods.length < world.foods) addFood();
     socket.clients.forEach(function each(client) {
-        send(client, JSON.stringify({ "function": "update", "players": newplayers, "foods": foods, "spikes": spikes, "playerx": players[client.id] ? players[client.id].x : 0, "playery": players[client.id] ? players[client.id].y : 0, "playermass": players[client.id] ? players[client.id].mass : 0}));
+        send(client, JSON.stringify({ "function": "update", "players": newplayers, "playerx": players[client.id] ? players[client.id].x : 0, "playery": players[client.id] ? players[client.id].y : 0, "playermass": players[client.id] ? players[client.id].mass : 0}));
     });
-} update();
-setInterval(update, 30);
+} 
 function calculateBorder(colour) {
     var c = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(colour);
     var r = parseInt(c[1], 16) - 32 > 0 ? parseInt(c[1], 16) - 32 : 0;
@@ -114,78 +80,58 @@ function calculateBorder(colour) {
     var b = parseInt(c[3], 16) - 32 > 0 ? parseInt(c[3], 16) - 32 : 0;
     return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
-function addPlayer(id, name, fill) {
-    var found = false;
-    players.forEach(function (player) {
-        if (player.id === id)
-            found = true;
-    });
-    if (found === false)
-        players[id] = { name: name, fill: fill, border: calculateBorder(fill), mass: 100, x: 150, y: 150, w: false, a: false, s: false, d: false };
-    else return true;
-}
-function movePlayer(id, keys) {
-    if (players[id]) {
-        players[id].w = keys.w;
-        players[id].a = keys.a;
-        players[id].s = keys.s;
-        players[id].d = keys.d;
-    }
-    else return true;
-}
-var colours = ["#00bfff", "#00ff00", "#ffff66", "#ff9900", "#9900cc", "#ff0000"];
-function spikeCreate() {
-    return {
-        x: Math.random() * (world.maxx - world.minx) + world.minx,
-        y: Math.random() * (world.maxy - world.miny) + world.miny,
-        offset: Math.random() * 100 - 50,
-        mass: 150
-    };
-}
-function spikesAdd() {
-    var newspike = spikeCreate(), attempts = 0, valid = false;
-    while (valid === false && attempts < 5) {
-        attempts++;
+function randomPosition(enforce) {
+    var x = Math.random() * (world.maxx - world.minx) + world.minx,
+        y = Math.random() * (world.maxy - world.miny) + world.miny,
+        valid = false;
+    while (enforce && !valid) {
         valid = true;
-        newspike.x = Math.random() * (world.maxx - world.minx) + world.minx;
-        newspike.y = Math.random() * (world.maxy - world.miny) + world.miny;
-        for (var i in players) if (players.hasOwnProperty(i)) {
-            if (Math.hypot(newspike.x - players[i].x, newspike.y - players[i].y) <= players[i].radius + 20) {
-                valid = false;
-            }
-        }
+        for (var i in players)
+            if (players[i])
+                if (Math.hypot(x - players[i].x, y - players[i].y) <= players[i].radius + 20)
+                    valid = false;
     }
-    spikes.push(newspike);
-    if (spikes.length < world.spikes)
-        spikesAdd();
-} spikesAdd();
-
-function foodAdd() {
-    if (foods.length < world.foods) {
-        var colour = colours[Math.floor(Math.random() * (colours.length - 1))];
-        foods.push({
-            x: Math.random() * (world.maxx - world.minx) + world.minx,
-            y: Math.random() * (world.maxy - world.miny) + world.miny,
-            mass: 10,
-            fill: colour,
-            border: calculateBorder(colour),
-            offset: Math.random() * 100 - 50,
-            spawn: function () {
-                var attempts = 0, valid = false;
-                while (valid === false && attempts < 5) {
-                    attempts++;
-                    valid = true;
-                    this.x = Math.random() * (world.maxx - world.minx) + world.minx;
-                    this.y = Math.random() * (world.maxy - world.miny) + world.miny;
-                    for (var i in players)
-                        if (players.hasOwnProperty(i))
-                            if (Math.hypot(this.x - players[i].x, this.y - players[i].y) <= players[i].radius + 20)
-                                valid = false;
-                }
-            }
-        });
-        foodAdd();
-    }        
+    return { x, y };
 }
-foodAdd();
-foods.forEach(function (food) { food.spawn(); });
+function addPlayer(id, name, fill) {
+    for (var i in players)
+        if (i === id)
+            return false;
+    var position = randomPosition(true);
+    players[id] = { name: name, fill: fill, border: calculateBorder(fill), mass: 150, x: position.x, y: position.y, keys: { w: false, a: false, s: false, d: false } };
+    return true;
+}
+function addSpike() {
+    var position = randomPosition(false);
+    if (position != false)
+        spikes.push({
+            x: position.x,
+            y: position.y,
+            offset: Math.random() * 100 - 50,
+            mass: 150
+        });
+    socket.clients.forEach(function each(client) {
+        send(client, JSON.stringify({ "function": "updateSpikes", "spikes": spikes }));
+    });
+} 
+function addFood() {
+    var position = randomPosition(false);
+    if (position != false)
+        foods.push({
+            x: position.x,
+            y: position.y,
+            offset: Math.random() * 100 - 50,
+            mass: 10,
+            fill: colours[foods.length % 6],
+            border: borders[foods.length % 6]
+        });
+    socket.clients.forEach(function each(client) {
+        send(client, JSON.stringify({ "function": "updateFood", "foods": foods }));
+    });
+}
+for (var i in colours) borders[i] = calculateBorder(colours[i]); 
+while (spikes.length < world.spikes) addSpike();
+while (foods.length < world.foods) addFood();
+setInterval(checkAlive, 5000);
+setInterval(update, 30);
+update();

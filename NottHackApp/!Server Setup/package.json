@@ -1,13 +1,14 @@
 {
-  "name": "nott-hack-app",
-  "version": "0.0.0",
+  "name": "TotallyNotAgario",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node app"
+    "start": "node app.js",
+	"test": "node test.js"
   },
-  "description": "NottHackApp",
+  "description": "A clone of agar.io built from the group up",
   "author": {
-    "name": "jrmar"
+    "name": "Jonathan Marsh"
   },
   "dependencies": {
     "debug": "^2.6.9",
