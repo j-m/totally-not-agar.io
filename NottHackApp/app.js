@@ -115,15 +115,15 @@ function addSpike() {
     });
 } 
 function addFood() {
-    var position = randomPosition(false);
+    var position = randomPosition(false), colour = Math.floor(Math.random() * colours.length);
     if (position != false)
         foods.push({
             x: position.x,
             y: position.y,
             offset: Math.random() * 100 - 50,
             mass: 10,
-            fill: colours[foods.length % 6],
-            border: borders[foods.length % 6]
+            fill: colours[colour],
+            border: borders[colour]
         });
     socket.clients.forEach(function each(client) {
         send(client, JSON.stringify({ "function": "updateFood", "foods": foods }));

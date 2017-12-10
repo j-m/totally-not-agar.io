@@ -74,17 +74,16 @@ $(document).ready(function () {
     }
     var zoom = 1;
     function grid() {
-        context.beginPath();
         context.lineWidth = 1;
         context.strokeStyle = '#EEE';
         var w = 5000, h = 2000;
-        for (x = -w; x <= 2*w; x += 50) {
-            context.moveTo(x - camera.x, 0);
-            context.lineTo(x - camera.x, h);
+        for (x = -camera.x; x <= w -camera.x; x += 50) {
+            context.moveTo(x, 0-camera.y);
+            context.lineTo(x, h-camera.y);
         }
-        for (y = -h; y <= 2*h; y += 50) {
-            context.moveTo(0, y - camera.y);
-            context.lineTo(w, y - camera.y);
+        for (y = -camera.y; y <= h -camera.y; y += 50) {
+            context.moveTo(0-camera.x, y);
+            context.lineTo(w-camera.x, y);
         }
         context.stroke();
     }
@@ -167,7 +166,6 @@ $(document).ready(function () {
         else if (key === 83) keys.s = true;
         ws.send(JSON.stringify({ "function": "move", "keys":keys }));
     });
-
     $("canvas").keyup(function (e) {
         var key = e.which;
         if (key === 65) keys.a = false;
