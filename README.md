@@ -16,9 +16,9 @@ To fix this I'm considering:
 
 ----
 To-do list, in priority order:
-- [ ] Background grid
+- [x] Background grid
 - [ ] Max zoom
-- [ ] Fix lag from food replacement: 1 attempt to replace after eaten, or N chance for 1 to be added per frame.
+- [x] Fix lag from food replacement (Much better than it was, still needs improvement)
 - [ ] Spike collision
 - [ ] Spliting
 - [ ] Eject mass
