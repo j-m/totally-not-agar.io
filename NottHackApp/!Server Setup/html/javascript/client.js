@@ -15,7 +15,10 @@ $(document).ready(function () {
         camera = { x: 0, y: 0 },
         players = [], spikes = [], foods = [],
         me = { mass: 100 };
+	
     function drawFood(food) {
+		food.offset++;
+		if (food.offset > 50) food.offset = -50;
         context.beginPath();
         context.arc(food.x - camera.x, food.y - camera.y, food.mass + (1 - Math.abs(food.offset) / 50)*2, 0, 2 * Math.PI, false);
         context.closePath();
@@ -31,6 +34,8 @@ $(document).ready(function () {
         return { x: x, y: y };
     }
     function drawSpike(spike) {
+		spike.offset++;
+		if (spike.offset > 50) spike.offset = -50;
         context.fillStyle = '#00ff00';
         context.lineWidth = spike.mass / 15;
         context.strokeStyle = '#00df00';
@@ -69,24 +74,34 @@ $(document).ready(function () {
         context.fillText(player.mass, player.x - camera.x, player.y - camera.y - player.mass / 5);
     }
     var zoom = 1;
-    function grid() {
-        context.beginPath();
-        context.lineWidth = 1;
-        context.strokeStyle = '#EEE';
-        for (x = 0; x <= parseInt(canvas.style.width * zoom, 10) + 1; x += parseInt(canvas.style.width * zoom, 10) / 20) {
-            context.moveTo(Math.floor(x - camera.x % 20), 0);
-            context.lineTo(Math.floor(x - camera.x % 20), parseInt(canvas.style.height, 10) );
-            for (y = 0; y <= parseInt(canvas.style.height * zoom, 10) + 1; y += parseInt(canvas.style.width * zoom, 10) / 20) {
-                context.moveTo(0, Math.floor(y - camera.y % 20));
-                context.lineTo(parseInt(canvas.style.width, 10) , Math.floor(y - camera.y % 20));
-            }
-        }
-        context.stroke();
+	var grid = new Image();
+    function createGrid() {
+		var data = '<svg width="5000px" height="2000px" xmlns="http://www.w3.org/2000/svg"> \
+			<defs> \
+				<pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"> \
+					<path d="M 50 0 L 0 0 0 50" fill="none" stroke="#eee" stroke-width="1.5" /> \
+				</pattern>\
+			</defs> \
+			<rect width="100%" height="100%" fill="url(#grid)" /> \
+		</svg>';
+		var DOMURL = window.URL || window.webkitURL || window;
+		var svg = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+		var url = DOMURL.createObjectURL(svg);
+		grid.src = url;
+		console.log(grid);
+    }createGrid();
+    function objects(data) {
+        spikes = data["spikes"];
+        foods = data["foods"];
+    }
+    function updateSpikes(data) {
+        spikes = data["spikes"];
+    }
+    function updateFood(data) {
+        foods = data["foods"];
     }
     function update(data) {
         players = data["players"];
-        spikes = data["spikes"];
-        foods = data["foods"];
         me.mass = data["playermass"]; 
 
         $('#players').text(players.length + (players.length !== 1 ? ' Players ' : ' Player ') + 'In-game');
@@ -97,8 +112,9 @@ $(document).ready(function () {
         camera.x = data["playerx"] - canvas.width / 2;
         camera.y = data["playery"] - canvas.height / 2;
 
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        grid();
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		context.drawImage(grid, -camera.x, -camera.y);
+		
         foods.forEach(function (food) { drawFood(food); });
         players.forEach(function (player) { drawPlayer(player); });
         spikes.forEach(function (spike) { drawSpike(spike); });
@@ -111,17 +127,20 @@ $(document).ready(function () {
     ws = new WebSocket("ws://139.59.182.80:8080/");
     ws.onerror = function (evt) { error(evt.data); };
     ws.onmessage = function (message) {
-        var object;
+        var data;
         try {
-            object = JSON.parse(message.data);
+            data = JSON.parse(message.data);
         } catch (e) {
             error("Invalid JSON recieved from server. Raw data: " + message.data);
             return;
         }
-        switch (object["function"]) {
-            case "update": update(object); break;
-            case "error": error(object["error"]); break;
-            default: error("Unknown function recieved from server: " + object["function"]); break;
+        switch (data["function"]) {
+            case "update": update(data); break;
+            case "objects": objects(data); break;
+            case "updateSpikes": updateSpikes(data); break;
+            case "updateFood": updateFood(data); break;
+            case "error": error(data["error"]); break;
+            default: error("Unknown function recieved from server: " + data["function"]); break;
         }
     };
     function draw() {

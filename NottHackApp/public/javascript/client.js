@@ -15,6 +15,7 @@ $(document).ready(function () {
         camera = { x: 0, y: 0 },
         players = [], spikes = [], foods = [],
         me = { mass: 100 };
+	
     function drawFood(food) {
 		food.offset++;
 		if (food.offset > 50) food.offset = -50;
@@ -73,20 +74,22 @@ $(document).ready(function () {
         context.fillText(player.mass, player.x - camera.x, player.y - camera.y - player.mass / 5);
     }
     var zoom = 1;
-    function grid() {
-        context.lineWidth = 1;
-        context.strokeStyle = '#EEE';
-        var w = 5000, h = 2000;
-        for (x = -camera.x; x <= w -camera.x; x += 50) {
-            context.moveTo(x, 0-camera.y);
-            context.lineTo(x, h-camera.y);
-        }
-        for (y = -camera.y; y <= h -camera.y; y += 50) {
-            context.moveTo(0-camera.x, y);
-            context.lineTo(w-camera.x, y);
-        }
-        context.stroke();
-    }
+	var grid = new Image();
+    function createGrid() {
+		var data = '<svg width="5000px" height="2000px" xmlns="http://www.w3.org/2000/svg"> \
+			<defs> \
+				<pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"> \
+					<path d="M 50 0 L 0 0 0 50" fill="none" stroke="#eee" stroke-width="1.5" /> \
+				</pattern>\
+			</defs> \
+			<rect width="100%" height="100%" fill="url(#grid)" /> \
+		</svg>';
+		var DOMURL = window.URL || window.webkitURL || window;
+		var svg = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+		var url = DOMURL.createObjectURL(svg);
+		grid.src = url;
+		console.log(grid);
+    }createGrid();
     function objects(data) {
         spikes = data["spikes"];
         foods = data["foods"];
@@ -109,8 +112,9 @@ $(document).ready(function () {
         camera.x = data["playerx"] - canvas.width / 2;
         camera.y = data["playery"] - canvas.height / 2;
 
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        grid();
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		context.drawImage(grid, -camera.x, -camera.y);
+		
         foods.forEach(function (food) { drawFood(food); });
         players.forEach(function (player) { drawPlayer(player); });
         spikes.forEach(function (spike) { drawSpike(spike); });
@@ -166,6 +170,7 @@ $(document).ready(function () {
         else if (key === 83) keys.s = true;
         ws.send(JSON.stringify({ "function": "move", "keys":keys }));
     });
+
     $("canvas").keyup(function (e) {
         var key = e.which;
         if (key === 65) keys.a = false;
