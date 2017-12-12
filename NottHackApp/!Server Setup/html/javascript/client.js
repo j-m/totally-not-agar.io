@@ -13,8 +13,7 @@
 $(document).ready(function () {
     var canvas = $("canvas")[0], context = canvas.getContext('2d'),
         camera = { x: 0, y: 0 },
-        players = [], spikes = [], foods = [],
-        me = { mass: 100 };
+        players = [], spikes = [], foods = [], me = { };
 	
     function drawFood(food) {
 		food.offset++;
@@ -54,7 +53,7 @@ $(document).ready(function () {
         context.arc(player.x - camera.x, player.y - camera.y, player.mass, 0, 2 * Math.PI, false);
         context.fillStyle = player.fill;
         context.fill();
-        context.lineWidth = 10;
+        context.lineWidth = player.mass/15;
         context.strokeStyle = player.border;
         context.stroke();
         
@@ -62,7 +61,7 @@ $(document).ready(function () {
         context.textBaseline = "middle";
         context.font = player.mass/5 + "px Sans-serif";
 
-        context.lineWidth = 5;
+        context.lineWidth = player.mass/15;
         context.strokeStyle = '#111';
         context.strokeText(player.name, player.x - camera.x, player.y - camera.y);
 
@@ -88,7 +87,6 @@ $(document).ready(function () {
 		var svg = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
 		var url = DOMURL.createObjectURL(svg);
 		grid.src = url;
-		console.log(grid);
     }createGrid();
     function objects(data) {
         spikes = data["spikes"];
@@ -104,9 +102,13 @@ $(document).ready(function () {
         players = data["players"];
         me.mass = data["playermass"]; 
 
-        $('#players').text(players.length + (players.length !== 1 ? ' Players ' : ' Player ') + 'In-game');
-
-        zoom = me.mass * 2 / (parseInt(canvas.style.width, 10) / 5);
+        $('#players').text(players.length + ' Player(s) In-game');
+		
+		var percentage = .2 +1-(300-me.mass)/3000;
+		if(percentage>0.9)percentage=0.9;
+		if(percentage<0.1)percentage=0.1
+		zoom = (me.mass * 2) / (parseInt(canvas.style.width, 10) * percentage);
+		console.log((300-me.mass)/300,percentage,zoom);
         canvas.width = parseInt(canvas.style.width, 10) * zoom;
         canvas.height = parseInt(canvas.style.height, 10) * zoom;
         camera.x = data["playerx"] - canvas.width / 2;
