@@ -1,4 +1,4 @@
-![Logo](https://github.com/jauntum/TotallyNotAgario/blob/master/NottHackApp/public/images/TNA.png "Logo")
+![Logo](https://github.com/jauntum/TotallyNotAgario/blob/master/public/images/TNA.png "Logo")
 
 ## [![Travis](https://travis-ci.org/jauntum/TotallyNotAgario.svg)](https://travis-ci.org/jauntum/TotallyNotAgario) Totally NOT Agar.io - Nottingham University Hackathon 2017
 
