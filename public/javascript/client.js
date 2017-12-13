@@ -1,4 +1,6 @@
-﻿window.requestAnimFrame = function () {
+﻿var address = "ws://" + location.hostname + ":" + 8080;
+console.log("Connecting to " + address);
+window.requestAnimFrame = function () {
     return (
         window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
@@ -124,7 +126,7 @@ $(document).ready(function () {
         $('#error').text("ERROR: " + description);
         $('#error').css('visibility', 'visible');
     }
-    ws = new WebSocket("ws://139.59.182.80:8080/");
+    ws = new WebSocket(address);
     ws.onerror = function (evt) { error(evt.data); };
     ws.onmessage = function (message) {
         var data;

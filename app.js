@@ -1,10 +1,39 @@
 ﻿'use strict';
-var debug = require('debug'),
+var listenOnPort = 8080,
+    debug = require('debug'),
+    path = require('path'),
+    favicon = require('serve-favicon'),
     logger = require('morgan'),
+    cookieParser = require('cookie-parser'),
+    bodyParser = require('body-parser'),
     uuid = require('uuid4'),
+    express = require('express'),
+    app = express(),
+    http = require('http').Server(app),
     WebSocketServer = require('ws').Server,
-    socket = new WebSocketServer({ port: 8080 }),
-    world = {
+    socket = new WebSocketServer({ port: listenOnPort });
+  
+app.use(logger('dev')); 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false })); 
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(favicon(__dirname + '/public/favicon.ico'));
+if (app.get('env') === 'development') {
+    app.use(function (err, req, res, next) {
+        res.status(err.status || 500);
+        res.render('error', {
+            message: err.message,
+            error: err
+        });
+    });
+}
+app.get('/', function (req, res) {res.sendFile(__dirname + '/index.html');});
+app.get('*', function (req, res) {res.sendFile(__dirname + '/public/error.html');});
+app.set('port', process.env.PORT || listenOnPort + 1);
+http.listen(app.get('port'));
+
+var	world = {
         minx: 0,
         miny: 0,
         maxx: 5000,
@@ -64,7 +93,6 @@ function update() {
                 if (Math.hypot(players[id].x - foods[index].x, players[id].y - foods[index].y) <= players[id].mass + foods[index].mass) {
                     foods.splice(index, 1);
                     players[id].mass += 1;
-                    console.log("Food removed");
                 }
             }
         }
