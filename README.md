@@ -10,9 +10,9 @@ The server manipulates all data, leaving nothing to the client and thus preventi
 Unfortunately, this means that you need a beefy CPU if you want it to actually be multiplayer.
 To fix this I'm considering:
 - Decreasing the time complexity by using more memory
-- Reducing event-based communication
+- ~~Reducing~~ Increasing event-based communication
 - Delaying non-essential data transmission
-- Using different web socket packages. (I have already changed from `socket.io` to `ws`)
+- Using different web socket packages (I have already changed from `socket.io` to `ws`)
 
 ----
 To-do list, in priority order:
@@ -32,4 +32,4 @@ To-do list, in priority order:
 ----
 
 Please bear in my I've kept this project as NO LICENSE as I do not own the rights to this idea. 
-If you wish to use any code from here, please check ![agar.io](http://agar.io) for their license first before asking me. 
+If you wish to use any code from here, please check [agar.io](http://agar.io) for their license first before asking me. 
