@@ -6,7 +6,7 @@
     "start": "node app",
 	"test": "node test.js"
   },
-  "description": "A clone of agar.io built from the group up",
+  "description": "A clone of agar.io built from the ground up",
   "author": {
     "name": "Jonathan Marsh"
   },
