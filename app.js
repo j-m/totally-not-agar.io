@@ -11,7 +11,7 @@ var listenOnPort = 8080,
     app = express(),
     http = require('http').Server(app),
     WebSocketServer = require('ws').Server,
-    socket = new WebSocketServer({ port: listenOnPort });
+    socket = new WebSocketServer({ port: listenOnPort+1 });
   
 app.use(logger('dev')); 
 app.use(bodyParser.json());
@@ -30,7 +30,7 @@ if (app.get('env') === 'development') {
 }
 app.get('/', function (req, res) {res.sendFile(__dirname + '/index.html');});
 app.get('*', function (req, res) {res.sendFile(__dirname + '/public/error.html');});
-app.set('port', process.env.PORT || listenOnPort + 1);
+app.set('port', process.env.PORT || listenOnPort);
 http.listen(app.get('port'));
 
 var	world = {
