@@ -1,4 +1,4 @@
-﻿var address = "ws://" + location.hostname + ":" + 8080;
+﻿var address = "ws://" + location.hostname + ":" + 8081;
 console.log("Connecting to " + address);
 window.requestAnimFrame = function () {
     return (
